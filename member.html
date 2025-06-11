@@ -5,7 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>會員頁面</title>
 <style>
-  /* Modal 基本樣式 */
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .info-cell {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    background-color: #f8f8f8;
+    font-weight: bold;
+    user-select: none;
+  }
+  .info-label {
+    font-size: 0.85em;
+    color: #666;
+    font-weight: normal;
+    margin-bottom: 4px;
+  }
+  /* modal 與先前相同，略 */
   .modal {
     display: none; 
     position: fixed; 
@@ -16,7 +41,7 @@
     background-color: rgba(0,0,0,0.5);
   }
   .modal-content {
-    background-color: #fefefe;
+    background-color: #fff;
     margin: 10% auto; 
     padding: 20px;
     border: 1px solid #888;
@@ -47,7 +72,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-  import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAq8_DC6kLl2bmqNKvv1q7ghZr0-7Ej4_k",
@@ -86,7 +111,7 @@
     document.getElementById("searchModal").style.display = "none";
   };
 
-  // 查詢電話號碼
+  // 查詢電話號碼並顯示第一筆資料在五格
   window.searchPhone = async () => {
     const phone = document.getElementById("searchInput").value.trim();
     const phoneRegex = /^09\d{8}$/;
@@ -99,25 +124,37 @@
     resultDiv.textContent = "查詢中...";
 
     try {
-      // 假設電話號碼都存在 users 集合各 uid 文件的 phones 陣列裡
-      // 只能逐筆搜尋全部用戶比較複雜，這裡示範簡易查詢，假設有建立額外的 phoneNumbers 集合方便查詢
-      // 如果沒有，你需要先設計結構，這裡用 phoneNumbers 集合，文件 id = 電話號碼
-      const docRef = await getDocs(query(collection(db, "phoneNumbers"), where("number", "==", phone)));
-      if (docRef.empty) {
+      // 讀取 phoneNumbers 集合下電話號碼文件
+      const phoneDocRef = doc(db, "phoneNumbers", phone);
+      const phoneDocSnap = await getDoc(phoneDocRef);
+
+      if (!phoneDocSnap.exists()) {
         resultDiv.textContent = "查無此電話號碼資料。";
-      } else {
-        // 顯示結果
-        let output = "";
-        docRef.forEach(doc => {
-          const data = doc.data();
-          output += `電話號碼：${data.number}\n加入日期：${data.addedAt}\n加入帳號：${data.uid}\n\n`;
-        });
-        resultDiv.textContent = output;
+        clearInfoGrid();
+        return;
       }
+
+      const data = phoneDocSnap.data();
+
+      // 填入五格（後兩格這裡示範放 —
+      document.getElementById("cell1").textContent = data.number || "—";
+      document.getElementById("cell2").textContent = data.addedAt ? new Date(data.addedAt).toLocaleString() : "—";
+      document.getElementById("cell3").textContent = data.balance !== undefined ? data.balance : "—"; // 假設儲值剩餘金額欄為balance
+      document.getElementById("cell4").textContent = "—";
+      document.getElementById("cell5").textContent = "—";
+
+      resultDiv.textContent = "查詢完成";
     } catch (error) {
       resultDiv.textContent = "查詢錯誤：" + error.message;
+      clearInfoGrid();
     }
   };
+
+  function clearInfoGrid() {
+    for(let i=1; i<=5; i++) {
+      document.getElementById("cell"+i).textContent = "";
+    }
+  }
 
   // 點擊 modal 外關閉
   window.onclick = function(event) {
@@ -130,6 +167,31 @@
 </head>
 <body>
   <h1>會員頁面</h1>
+
+  <!-- 五格顯示查詢結果 -->
+  <div class="info-grid">
+    <div class="info-cell">
+      <div class="info-label">電話號碼</div>
+      <div id="cell1"></div>
+    </div>
+    <div class="info-cell">
+      <div class="info-label">加入時間</div>
+      <div id="cell2"></div>
+    </div>
+    <div class="info-cell">
+      <div class="info-label">儲值剩餘金額</div>
+      <div id="cell3"></div>
+    </div>
+    <div class="info-cell">
+      <div class="info-label">欄位4</div>
+      <div id="cell4"></div>
+    </div>
+    <div class="info-cell">
+      <div class="info-label">欄位5</div>
+      <div id="cell5"></div>
+    </div>
+  </div>
+
   <button onclick="showAddPhoneDialog()">加入會員電話號碼</button>
   <button onclick="openSearchModal()">查詢電話號碼</button>
   <br /><br />
@@ -163,7 +225,7 @@
 
         const userDocRef = doc(db, "users", currentUser.uid);
         await updateDoc(userDocRef, {
-          phones: arrayUnion({ number: phone, addedAt: new Date().toISOString(), uid: currentUser.uid })
+          phones: arrayUnion({ number: phone, addedAt: new Date().toISOString(), uid: currentUser.uid, balance: 0 })
         });
 
         // 同時在 phoneNumbers 集合新增方便查詢
@@ -171,7 +233,8 @@
         await updateDoc(phoneDocRef, {
           number: phone,
           addedAt: new Date().toISOString(),
-          uid: currentUser.uid
+          uid: currentUser.uid,
+          balance: 0 // 預設儲值剩餘金額
         }, { merge: true });
 
         alert("電話號碼已加入！");
