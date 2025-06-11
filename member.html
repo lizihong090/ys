@@ -14,13 +14,13 @@
     --border-color: #ddd;
     --text-muted: #666;
   }
-  
+
   * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
   }
-  
+
   body {
     font-family: 'Segoe UI', Arial, sans-serif;
     line-height: 1.6;
@@ -30,14 +30,14 @@
     max-width: 1200px;
     margin: 0 auto;
   }
-  
+
   h1 {
     color: var(--primary-color);
     margin-bottom: 24px;
     text-align: center;
     font-weight: 500;
   }
-  
+
   .header {
     display: flex;
     justify-content: space-between;
@@ -46,7 +46,7 @@
     flex-wrap: wrap;
     gap: 10px;
   }
-  
+
   .info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -57,7 +57,7 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     padding: 15px;
   }
-  
+
   .info-cell {
     border: 1px solid var(--border-color);
     padding: 15px;
@@ -66,33 +66,33 @@
     background-color: var(--light-gray);
     transition: all 0.3s ease;
   }
-  
+
   .info-cell:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   }
-  
+
   .info-label {
     font-size: 0.85em;
     color: var(--text-muted);
     margin-bottom: 8px;
     font-weight: 500;
   }
-  
+
   .info-value {
     font-weight: 600;
     font-size: 1.1em;
     color: #333;
     min-height: 24px;
   }
-  
+
   .button-group {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
     flex-wrap: wrap;
   }
-  
+
   button {
     background-color: var(--primary-color);
     color: white;
@@ -109,54 +109,53 @@
     justify-content: center;
     gap: 8px;
   }
-  
+
   button:hover {
     opacity: 0.9;
     transform: translateY(-1px);
   }
-  
+
   button:active {
     transform: translateY(0);
   }
-  
+
   button.secondary {
     background-color: var(--secondary-color);
   }
-  
+
   button.warning {
     background-color: var(--warning-color);
   }
-  
+
   button.danger {
     background-color: var(--danger-color);
   }
-  
+
   button i {
     font-size: 1.1em;
   }
-  
-  /* Modal Styles */
+
   .modal {
-    display: none; 
-    position: fixed; 
-    z-index: 1000; 
-    left: 0; 
-    top: 0; 
-    width: 100%; 
-    height: 100%; 
-    overflow: auto; 
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
     background-color: rgba(0,0,0,0.5);
     animation: fadeIn 0.3s;
   }
-  
+
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
   }
-  
+
   .modal-content {
     background-color: #fff;
-    margin: 10% auto; 
+    margin: 10% auto;
     padding: 25px;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
@@ -165,12 +164,12 @@
     position: relative;
     animation: slideDown 0.3s;
   }
-  
+
   @keyframes slideDown {
     from { transform: translateY(-50px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
-  
+
   .close-btn {
     color: var(--text-muted);
     position: absolute;
@@ -181,28 +180,28 @@
     cursor: pointer;
     transition: color 0.2s;
   }
-  
+
   .close-btn:hover {
     color: var(--primary-color);
   }
-  
+
   .modal-title {
     margin-bottom: 20px;
     color: var(--primary-color);
     font-weight: 500;
   }
-  
+
   .form-group {
     margin-bottom: 15px;
   }
-  
+
   label {
     display: block;
     margin-bottom: 8px;
     font-weight: 500;
     color: #555;
   }
-  
+
   input {
     width: 100%;
     padding: 10px 12px;
@@ -211,13 +210,13 @@
     font-size: 1em;
     transition: border 0.3s;
   }
-  
+
   input:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
   }
-  
+
   .search-result {
     margin-top: 20px;
     padding: 15px;
@@ -228,7 +227,7 @@
     align-items: center;
     justify-content: center;
   }
-  
+
   .spinner {
     border: 3px solid rgba(0,0,0,0.1);
     border-radius: 50%;
@@ -238,19 +237,18 @@
     animation: spin 1s linear infinite;
     margin-right: 10px;
   }
-  
+
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
-  
+
   .loading {
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  
-  /* Toast 通知 */
+
   .toast {
     position: fixed;
     bottom: 20px;
@@ -265,39 +263,38 @@
     opacity: 0;
     transition: opacity 0.3s;
   }
-  
+
   .toast.show {
     opacity: 1;
   }
-  
+
   .toast.success {
     background-color: var(--secondary-color);
   }
-  
+
   .toast.error {
     background-color: var(--danger-color);
   }
-  
-  /* Responsive adjustments */
+
   @media (max-width: 768px) {
     .info-grid {
       grid-template-columns: 1fr 1fr;
     }
-    
+
     .button-group {
       flex-direction: column;
     }
-    
+
     button {
       width: 100%;
     }
   }
-  
+
   @media (max-width: 480px) {
     .info-grid {
       grid-template-columns: 1fr;
     }
-    
+
     .modal-content {
       margin: 20% auto;
       width: 95%;
@@ -309,12 +306,11 @@
 <body>
   <div class="header">
     <h1>會員管理系統</h1>
-    <button class="danger" onclick="auth.signOut().then(() => window.location.href='index.html')">
+    <button class="danger" onclick="auth.signOut().then(() => window.location.href='login.html')">
       <i class="fas fa-sign-out-alt"></i> 登出
     </button>
   </div>
 
-  <!-- 會員資訊卡片 -->
   <div class="info-grid">
     <div class="info-cell">
       <div class="info-label">電話號碼</div>
@@ -338,7 +334,6 @@
     </div>
   </div>
 
-  <!-- 操作按鈕 -->
   <div class="button-group">
     <button class="secondary" onclick="showAddPhoneDialog()">
       <i class="fas fa-user-plus"></i> 新增會員
@@ -351,360 +346,42 @@
     </button>
   </div>
 
-  <!-- 查詢會員彈窗 -->
   <div id="searchModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeSearchModal()">&times;</span>
       <h2 class="modal-title"><i class="fas fa-search"></i> 查詢會員資料</h2>
-      
       <div class="form-group">
         <label for="searchInput">電話號碼</label>
-        <input type="tel" id="searchInput" maxlength="10" placeholder="請輸入09開頭的電話號碼" 
-               pattern="09\d{8}" inputmode="numeric" />
+        <input type="tel" id="searchInput" maxlength="10" placeholder="請輸入09開頭的電話號碼" pattern="09\d{8}" inputmode="numeric" />
       </div>
-      
       <button onclick="searchPhone()">
         <i class="fas fa-search"></i> 查詢
       </button>
-      
       <div class="search-result" id="searchResult">
         請輸入電話號碼查詢會員資料
       </div>
     </div>
   </div>
 
-  <!-- 儲值金額彈窗 -->
   <div id="rechargeModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeRechargeModal()">&times;</span>
       <h2 class="modal-title"><i class="fas fa-coins"></i> 會員儲值</h2>
-      
       <div class="form-group">
         <label for="rechargePhone">電話號碼</label>
-        <input type="tel" id="rechargePhone" maxlength="10" placeholder="請輸入09開頭的電話號碼" 
-               pattern="09\d{8}" inputmode="numeric" />
+        <input type="tel" id="rechargePhone" maxlength="10" placeholder="請輸入09開頭的電話號碼" pattern="09\d{8}" inputmode="numeric" />
       </div>
-      
       <div class="form-group">
         <label for="rechargeAmount">儲值金額</label>
         <input type="number" id="rechargeAmount" placeholder="請輸入儲值金額" min="1" />
       </div>
-      
       <button class="secondary" onclick="rechargeMember()">
         <i class="fas fa-check-circle"></i> 確認儲值
       </button>
-      
       <div class="search-result" id="rechargeResult">
         請輸入電話號碼和儲值金額
       </div>
     </div>
   </div>
-
-  <!-- Toast 通知 -->
-  <div id="toast" class="toast"></div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
-
-  // Firebase 配置
-  const firebaseConfig = {
-    apiKey: "AIzaSyAq8_DC6kLl2bmqNKvv1q7ghZr0-7Ej4_k",
-    authDomain: "yesh-87d8e.firebaseapp.com",
-    projectId: "yesh-87d8e",
-    storageBucket: "yesh-87d8e.appspot.com",
-    messagingSenderId: "969667016769",
-    appId: "1:969667016769:web:6715fb42ed5daaa5b66ec0",
-    measurementId: "G-ETRBPCH2XN"
-  };
-
-  // 初始化 Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  let currentUser = null;
-  let currentMemberData = null;
-
-  // 監聽認證狀態
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      currentUser = user;
-      console.log("使用者已登入:", user.email);
-    } else {
-      showToast("請先登入系統！", "error");
-      setTimeout(() => {
-        window.location.href = "login.html";
-      }, 1500);
-    }
-  });
-
-  // 顯示 Toast 通知
-  function showToast(message, type = "success") {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.className = `toast ${type} show`;
-    
-    setTimeout(() => {
-      toast.classList.remove("show");
-    }, 3000);
-  }
-
-  // 顯示查詢彈窗
-  window.openSearchModal = () => {
-    const modal = document.getElementById("searchModal");
-    modal.style.display = "block";
-    document.getElementById("searchResult").textContent = "請輸入電話號碼查詢會員資料";
-    document.getElementById("searchInput").value = "";
-    document.getElementById("searchInput").focus();
-  };
-
-  // 關閉查詢彈窗
-  window.closeSearchModal = () => {
-    document.getElementById("searchModal").style.display = "none";
-  };
-
-  // 顯示儲值彈窗
-  window.showRechargeDialog = () => {
-    const modal = document.getElementById("rechargeModal");
-    modal.style.display = "block";
-    document.getElementById("rechargeResult").textContent = "請輸入電話號碼和儲值金額";
-    document.getElementById("rechargePhone").value = "";
-    document.getElementById("rechargeAmount").value = "";
-    document.getElementById("rechargePhone").focus();
-  };
-
-  // 關閉儲值彈窗
-  window.closeRechargeModal = () => {
-    document.getElementById("rechargeModal").style.display = "none";
-  };
-
-  // 查詢電話號碼
-  window.searchPhone = async () => {
-    const phone = document.getElementById("searchInput").value.trim();
-    const resultDiv = document.getElementById("searchResult");
-    const phoneRegex = /^09\d{8}$/;
-    
-    if (!phoneRegex.test(phone)) {
-      resultDiv.innerHTML = '<span style="color: var(--danger-color)">請輸入正確的電話號碼格式 (09xxxxxxxx)</span>';
-      return;
-    }
-
-    // 顯示載入狀態
-    resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div>查詢中...</div>';
-    
-    try {
-      // 查詢 phoneNumbers 集合
-      const phoneDocRef = doc(db, "phoneNumbers", phone);
-      const phoneDocSnap = await getDoc(phoneDocRef);
-
-      if (!phoneDocSnap.exists()) {
-        resultDiv.innerHTML = '<span style="color: var(--danger-color)">查無此電話號碼的會員資料</span>';
-        clearInfoGrid();
-        currentMemberData = null;
-        return;
-      }
-
-      const data = phoneDocSnap.data();
-      currentMemberData = data;
-      
-      // 更新資訊卡片
-      updateInfoGrid(data);
-      
-      // 顯示成功訊息
-      resultDiv.innerHTML = '<span style="color: var(--secondary-color)"><i class="fas fa-check-circle"></i> 查詢完成</span>';
-    } catch (error) {
-      console.error("查詢錯誤:", error);
-      resultDiv.innerHTML = `<span style="color: var(--danger-color)">查詢錯誤: ${error.message}</span>`;
-      clearInfoGrid();
-      currentMemberData = null;
-    }
-  };
-
-  // 會員儲值功能
-  window.rechargeMember = async () => {
-    const phone = document.getElementById("rechargePhone").value.trim();
-    const amount = parseFloat(document.getElementById("rechargeAmount").value);
-    const resultDiv = document.getElementById("rechargeResult");
-    const phoneRegex = /^09\d{8}$/;
-    
-    if (!phoneRegex.test(phone)) {
-      resultDiv.innerHTML = '<span style="color: var(--danger-color)">請輸入正確的電話號碼格式 (09xxxxxxxx)</span>';
-      return;
-    }
-    
-    if (isNaN(amount) || amount <= 0) {
-      resultDiv.innerHTML = '<span style="color: var(--danger-color)">請輸入有效的儲值金額</span>';
-      return;
-    }
-
-    // 顯示載入狀態
-    resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div>處理中...</div>';
-    
-    try {
-      // 使用事務處理確保數據一致性
-      await runTransaction(db, async (transaction) => {
-        const phoneDocRef = doc(db, "phoneNumbers", phone);
-        const phoneDoc = await transaction.get(phoneDocRef);
-        
-        if (!phoneDoc.exists()) {
-          throw new Error("會員不存在");
-        }
-        
-        const currentBalance = phoneDoc.data().balance || 0;
-        const newBalance = currentBalance + amount;
-        
-        // 更新電話號碼文件
-        transaction.update(phoneDocRef, {
-          balance: newBalance,
-          lastUpdated: new Date().toISOString()
-        });
-        
-        // 更新使用者文件中的記錄
-        const userDocRef = doc(db, "users", currentUser.uid);
-        transaction.update(userDocRef, {
-          phones: arrayUnion({
-            number: phone,
-            rechargeAmount: amount,
-            rechargedAt: new Date().toISOString(),
-            operator: currentUser.uid
-          })
-        });
-        
-        return newBalance;
-      });
-      
-      // 顯示成功訊息
-      resultDiv.innerHTML = `<span style="color: var(--secondary-color)"><i class="fas fa-check-circle"></i> 儲值成功！金額已更新</span>`;
-      showToast("儲值成功！", "success");
-      
-      // 如果當前查詢的是同一個會員，則更新顯示
-      if (currentMemberData && currentMemberData.number === phone) {
-        currentMemberData.balance += amount;
-        updateInfoGrid(currentMemberData);
-      }
-      
-      // 清空輸入框
-      document.getElementById("rechargeAmount").value = "";
-    } catch (error) {
-      console.error("儲值錯誤:", error);
-      resultDiv.innerHTML = `<span style="color: var(--danger-color)">儲值失敗: ${error.message}</span>`;
-      showToast(`儲值失敗: ${error.message}`, "error");
-    }
-  };
-
-  // 更新資訊卡片
-  function updateInfoGrid(data) {
-    document.getElementById("cell1").textContent = data.number || "—";
-    document.getElementById("cell2").textContent = data.addedAt ? formatDate(data.addedAt) : "—";
-    document.getElementById("cell3").textContent = data.balance !== undefined ? `$${data.balance.toLocaleString()}` : "—";
-    document.getElementById("cell4").textContent = data.lastPurchase ? formatDate(data.lastPurchase) : "—";
-    document.getElementById("cell5").textContent = data.level || "普通會員";
-  }
-
-  // 清空資訊卡片
-  function clearInfoGrid() {
-    for(let i = 1; i <= 5; i++) {
-      document.getElementById(`cell${i}`).textContent = "—";
-    }
-  }
-
-  // 格式化日期
-  function formatDate(timestamp) {
-    if (!timestamp) return "—";
-    const date = new Date(timestamp);
-    return date.toLocaleString('zh-TW', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  // 顯示新增會員對話框
-  window.showAddPhoneDialog = async () => {
-    const phone = prompt("請輸入會員電話號碼 (09xxxxxxxx):");
-    if (phone === null) return;
-
-    const phoneTrimmed = phone.trim();
-    const phoneRegex = /^09\d{8}$/;
-    
-    if (!phoneRegex.test(phoneTrimmed)) {
-      alert("電話號碼格式錯誤，請輸入09開頭共10碼的號碼");
-      return;
-    }
-
-    try {
-      await savePhoneNumber(phoneTrimmed);
-      showToast("會員新增成功！", "success");
-      
-      // 自動查詢新增的會員
-      document.getElementById("searchInput").value = phoneTrimmed;
-      searchPhone();
-    } catch (error) {
-      showToast(`新增會員失敗: ${error.message}`, "error");
-    }
-  };
-
-  // 儲存電話號碼到資料庫
-  async function savePhoneNumber(phone) {
-    if (!currentUser) {
-      throw new Error("使用者尚未登入");
-    }
-
-    try {
-      // 更新使用者文件
-      const userDocRef = doc(db, "users", currentUser.uid);
-      await setDoc(userDocRef, {
-        phones: arrayUnion({ 
-          number: phone, 
-          addedAt: new Date().toISOString(), 
-          uid: currentUser.uid, 
-          balance: 0 
-        })
-      }, { merge: true });
-
-      // 創建或更新電話號碼文件
-      const phoneDocRef = doc(db, "phoneNumbers", phone);
-      await setDoc(phoneDocRef, {
-        number: phone,
-        addedAt: new Date().toISOString(),
-        uid: currentUser.uid,
-        balance: 0,
-        level: "普通會員",
-        lastUpdated: new Date().toISOString()
-      }, { merge: true });
-      
-      console.log("電話號碼已成功保存");
-    } catch (error) {
-      console.error("儲存電話號碼錯誤:", error);
-      throw error;
-    }
-  }
-
-  // 點擊彈窗外部關閉
-  window.onclick = function(event) {
-    const searchModal = document.getElementById("searchModal");
-    const rechargeModal = document.getElementById("rechargeModal");
-    
-    if (event.target === searchModal) {
-      closeSearchModal();
-    }
-    
-    if (event.target === rechargeModal) {
-      closeRechargeModal();
-    }
-  };
-
-  // 按ESC鍵關閉彈窗
-  document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-      closeSearchModal();
-      closeRechargeModal();
-    }
-  });
-</script>
 </body>
 </html>
