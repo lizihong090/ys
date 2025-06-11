@@ -6,7 +6,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, updateDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAq8_DC6kLl2bmqNKvv1q7ghZr0-7Ej4_k",
@@ -23,28 +23,24 @@
     const db = getFirestore(app);
 
     let currentUser = null;
-    let phoneExists = false;
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUser = user;
         document.getElementById("userEmail").innerText = user.email;
 
-        // 讀取 Firestore 中的電話號碼
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
           const data = docSnap.data();
-          if (data.phone) {
-            phoneExists = true;
-            document.getElementById("phoneNumber").innerText = data.phone;
-            document.getElementById("addPhoneBtn").disabled = true; // 若已有電話則禁用按鈕
+          if (data.phones && data.phones.length > 0) {
+            document.getElementById("phoneList").innerText = data.phones.join(", ");
           } else {
-            document.getElementById("phoneNumber").innerText = "未填寫";
+            document.getElementById("phoneList").innerText = "尚未填寫";
           }
         } else {
-          document.getElementById("phoneNumber").innerText = "未填寫";
+          document.getElementById("phoneList").innerText = "尚未填寫";
         }
       } else {
         alert("尚未登入，請返回登入頁面");
@@ -52,26 +48,24 @@
       }
     });
 
-    // 新增電話（只能填一次）
+    // 只加新電話，不覆蓋原 phones 陣列
     window.addPhoneNumber = async function() {
-      if (phoneExists) {
-        alert("您已填寫電話號碼，無法再新增！");
-        return;
-      }
-
-      const phone = prompt("請輸入電話號碼：");
-
+      const phone = prompt("請輸入新電話號碼：");
       if (phone) {
         try {
           const userDoc = doc(db, "users", currentUser.uid);
-          await setDoc(userDoc, { phone: phone }, { merge: true });
-          alert("電話號碼已新增！");
-          document.getElementById("phoneNumber").innerText = phone;
-          document.getElementById("addPhoneBtn").disabled = true; // 禁用按鈕
-          phoneExists = true;
+          await updateDoc(userDoc, {
+            phones: arrayUnion(phone) // 只加入，不覆蓋
+          });
+          alert("電話號碼已加入！");
+          
+          // 重新顯示更新
+          const docSnap = await getDoc(userDoc);
+          const data = docSnap.data();
+          document.getElementById("phoneList").innerText = data.phones.join(", ");
         } catch (error) {
-          console.error("新增電話失敗：", error);
-          alert("新增失敗：" + error.message);
+          console.error("加入電話失敗：", error);
+          alert("錯誤：" + error.message);
         }
       } else {
         alert("未輸入電話號碼！");
@@ -82,7 +76,7 @@
 <body>
   <h2>會員資料</h2>
   <p>登入帳號：<span id="userEmail"></span></p>
-  <p>已儲存電話號碼：<span id="phoneNumber"></span></p>
-  <button id="addPhoneBtn" onclick="addPhoneNumber()">加入會員電話（僅限一次）</button>
+  <p>已儲存電話號碼：<span id="phoneList"></span></p>
+  <button onclick="addPhoneNumber()">加入電話（不覆蓋原有）</button>
 </body>
 </html>
