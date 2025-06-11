@@ -1,95 +1,188 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <title>會員頁面</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>會員頁面 - 電話號碼管理</title>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAq8_DC6kLl2bmqNKvv1q7ghZr0-7Ej4_k",
-      authDomain: "yesh-87d8e.firebaseapp.com",
-      projectId: "yesh-87d8e",
-      storageBucket: "yesh-87d8e.firebasestorage.app",
-      messagingSenderId: "969667016769",
-      appId: "1:969667016769:web:6715fb42ed5daaa5b66ec0",
-      measurementId: "G-ETRBPCH2XN"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyAq8_DC6kLl2bmqNKvv1q7ghZr0-7Ej4_k",
+    authDomain: "yesh-87d8e.firebaseapp.com",
+    projectId: "yesh-87d8e",
+    storageBucket: "yesh-87d8e.firebasestorage.app",
+    messagingSenderId: "969667016769",
+    appId: "1:969667016769:web:6715fb42ed5daaa5b66ec0",
+    measurementId: "G-ETRBPCH2XN"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    let currentUser;
+  let currentUser = null;
 
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        currentUser = user;
-        loadPhones();
-      } else {
-        window.location.href = "index.html";
-      }
+  // 監聽登入狀態
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      currentUser = user;
+      document.getElementById("welcomeMsg").innerText = `歡迎，${user.email}`;
+      loadPhones();
+    } else {
+      alert("請先登入！");
+      window.location.href = "login.html"; // 登入頁面
+    }
+  });
+
+  // 登出功能
+  window.logout = () => {
+    signOut(auth).then(() => {
+      window.location.href = "login.html";
     });
+  };
 
-    async function loadPhones() {
-      try {
-        const userDoc = doc(db, "users", currentUser.uid);
-        const docSnap = await getDoc(userDoc);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          document.getElementById("phoneList").innerText = data.phones ? data.phones.join(", ") : "尚無電話號碼";
-          document.getElementById("info").innerText = `會員Email: ${currentUser.email}`;
-        } else {
-          // 若無文件，初始化空陣列
-          await updateDoc(userDoc, { phones: [] }).catch(() => {});
-          document.getElementById("phoneList").innerText = "尚無電話號碼";
-          document.getElementById("info").innerText = `會員Email: ${currentUser.email}`;
-        }
-      } catch (error) {
-        alert("讀取電話號碼錯誤：" + error.message);
+  // 載入使用者電話號碼清單
+  async function loadPhones() {
+    const userDoc = doc(db, "users", currentUser.uid);
+    const docSnap = await getDoc(userDoc);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      document.getElementById("phoneList").innerText = data.phones ? data.phones.join(", ") : "";
+    } else {
+      document.getElementById("phoneList").innerText = "";
+    }
+  }
+
+  // 彈出加入電話號碼輸入框
+  window.showAddPhoneDialog = () => {
+    const phone = prompt("請輸入電話號碼 (09xxxxxxxx)：");
+    if (!phone) return; // 取消輸入
+    const phoneRegex = /^09\d{8}$/;
+    if (!phoneRegex.test(phone)) {
+      alert("電話號碼格式錯誤，請輸入09開頭的10位數字");
+      return;
+    }
+    addPhone(phone);
+  };
+
+  // 新增電話號碼但不更新已存在的
+  async function addPhone(phone) {
+    const userDoc = doc(db, "users", currentUser.uid);
+    const docSnap = await getDoc(userDoc);
+    let phones = [];
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      phones = data.phones || [];
+      if (phones.includes(phone)) {
+        alert("此電話號碼已存在，無法重複新增");
+        return;
       }
     }
-
-    window.addPhoneNumber = async () => {
-      const phone = prompt("請輸入新電話號碼（格式：09xxxxxxxx）：");
-      const phoneRegex = /^09\d{8}$/;
-
-      if (!phone) {
-        alert("未輸入電話號碼！");
-        return;
-      }
-
-      if (!phoneRegex.test(phone)) {
-        alert("電話格式錯誤！請輸入正確的格式：09xxxxxxxx");
-        return;
-      }
-
-      try {
-        const userDoc = doc(db, "users", currentUser.uid);
-        await updateDoc(userDoc, {
-          phones: arrayUnion(phone)
-        });
-        alert("電話號碼已加入！");
-        loadPhones();
-      } catch (error) {
-        alert("加入電話失敗：" + error.message);
-      }
+    const now = new Date().toISOString();
+    // 新增電話號碼物件（含電話、加入日期、加入帳號）
+    const phoneObj = {
+      number: phone,
+      addedAt: now,
+      addedBy: currentUser.email
     };
-
-    window.logout = () => {
-      signOut(auth).then(() => {
-        window.location.href = "index.html";
+    // 更新 Firestore 文件，phones 陣列加入新物件
+    try {
+      await updateDoc(userDoc, {
+        phones: arrayUnion(phoneObj)
       });
-    };
-  </script>
+      alert("電話號碼新增成功");
+      loadPhonesDetails();
+    } catch (error) {
+      // 如果沒有文件就先建立
+      if (error.code === "not-found") {
+        await setDoc(userDoc, { phones: [phoneObj] });
+        alert("電話號碼新增成功");
+        loadPhonesDetails();
+      } else {
+        alert("新增失敗：" + error.message);
+      }
+    }
+  }
+
+  // 顯示電話號碼與加入時間和帳號
+  async function loadPhonesDetails() {
+    const userDoc = doc(db, "users", currentUser.uid);
+    const docSnap = await getDoc(userDoc);
+    const listEl = document.getElementById("phoneDetailsList");
+    listEl.innerHTML = "";
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.phones && data.phones.length > 0) {
+        data.phones.forEach(phoneObj => {
+          const li = document.createElement("li");
+          li.innerText = `${phoneObj.number} （註冊日期: ${new Date(phoneObj.addedAt).toLocaleString()}，由 ${phoneObj.addedBy} 加入）`;
+          listEl.appendChild(li);
+        });
+      } else {
+        listEl.innerHTML = "<li>尚無電話號碼</li>";
+      }
+    } else {
+      listEl.innerHTML = "<li>尚無資料</li>";
+    }
+  }
+
+  // 查詢電話號碼註冊日期與加入帳號
+  window.queryPhone = async () => {
+    const qPhone = document.getElementById("queryInput").value.trim();
+    const phoneRegex = /^09\d{8}$/;
+    if (!phoneRegex.test(qPhone)) {
+      alert("請輸入正確格式的電話號碼 (09xxxxxxxx)");
+      return;
+    }
+    const userDoc = doc(db, "users", currentUser.uid);
+    const docSnap = await getDoc(userDoc);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const phoneObj = (data.phones || []).find(p => p.number === qPhone);
+      if (phoneObj) {
+        alert(`電話號碼：${phoneObj.number}\n註冊日期：${new Date(phoneObj.addedAt).toLocaleString()}\n由帳號：${phoneObj.addedBy} 添加`);
+      } else {
+        alert("查無此電話號碼");
+      }
+    } else {
+      alert("尚無資料");
+    }
+  };
+
+</script>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  #phoneDetailsList li { margin-bottom: 5px; }
+  button { margin: 5px 0; }
+</style>
 </head>
 <body>
-  <h2>會員中心</h2>
-  <div id="info"></div>
-  <p>已加入電話號碼：<span id="phoneList">讀取中...</span></p>
-  <button onclick="addPhoneNumber()">加入電話號碼</button>
-  <button onclick="logout()">登出</button>
+
+<h2 id="welcomeMsg">載入中...</h2>
+<button onclick="logout()">登出</button>
+
+<h3>電話號碼清單</h3>
+<p id="phoneList"></p>
+
+<ul id="phoneDetailsList"></ul>
+
+<button onclick="showAddPhoneDialog()">新增會員電話號碼</button>
+
+<h3>查詢電話號碼</h3>
+<input type="text" id="queryInput" placeholder="輸入09xxxxxxxx格式電話" maxlength="10" />
+<button onclick="queryPhone()">查詢</button>
+
+<script>
+  // 頁面載入時同時載入詳細電話資料
+  window.onload = () => {
+    if (currentUser) {
+      loadPhonesDetails();
+    }
+  };
+</script>
+
 </body>
 </html>
