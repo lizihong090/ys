@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>電話簿系統 (Firebase v9+)</title>
+</head>
+<body>
+  <h2>登入 / 註冊</h2>
+  <input type="email" id="email" placeholder="Email"><br><br>
+  <input type="password" id="password" placeholder="Password"><br><br>
+  <button onclick="signUp()">註冊</button>
+  <button onclick="login()">登入</button>
+  <button onclick="logout()">登出</button>
+  <p id="msg"></p>
+
+  <hr>
+
+  <h2>新增電話（需登入）</h2>
+  <input type="text" id="phone" placeholder="電話號碼"><br><br>
+  <button onclick="addPhone()">新增電話</button>
+
+  <h3>電話清單：</h3>
+  <ul id="phoneList"></ul>
+
+  <script type="module">
+    // Import SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-analytics.js";
+
+    // Firebase config (你的專案)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAq8_DC6kLl2bmqNKvv1q7ghZr0-7Ej4_k",
+      authDomain: "yesh-87d8e.firebaseapp.com",
+      projectId: "yesh-87d8e",
+      storageBucket: "yesh-87d8e.firebasestorage.app",
+      messagingSenderId: "969667016769",
+      appId: "1:969667016769:web:6715fb42ed5daaa5b66ec0",
+      measurementId: "G-ETRBPCH2XN"
+    };
+
+    // 初始化
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+
+    // 註冊
+    window.signUp = async function() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        document.getElementById('msg').innerText = "註冊成功！";
+      } catch (error) {
+        document.getElementById('msg').innerText = error.message;
+      }
+    };
+
+    // 登入
+    window.login = async function() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        document.getElementById('msg').innerText = "登入成功！";
+      } catch (error) {
+        document.getElementById('msg').innerText = error.message;
+      }
+    };
+
+    // 登出
+    window.logout = async function() {
+      await signOut(auth);
+      document.getElementById('msg').innerText = "已登出";
+      document.getElementById('phoneList').innerHTML = "";
+    };
+
+    // 新增電話
+    window.addPhone = async function() {
+      if (!currentUser) {
+        alert("請先登入！");
+        return;
+      }
+      const phone = document.getElementById('phone').value;
+      try {
+        await addDoc(collection(db, "users", currentUser.uid, "phones"), {
+          number: phone,
+          createdAt: new Date()
+        });
+        document.getElementById('phone').value = "";
+        loadPhones();
+      } catch (error) {
+        console.error("錯誤：", error);
+      }
+    };
+
+    // 讀取電話
+    async function loadPhones() {
+      if (!currentUser) return;
+      const phoneList = document.getElementById('phoneList');
+      phoneList.innerHTML = "";
+
+      const q = query(collection(db, "users", currentUser.uid, "phones"), orderBy("createdAt", "desc"));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        const li = document.createElement('li');
+        li.textContent = doc.data().number;
+        phoneList.appendChild(li);
+      });
+    }
+
+    // 監聽登入狀態
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('msg').innerText = "已登入：" + user.email;
+        loadPhones();
+      } else {
+        currentUser = null;
+        document.getElementById('msg').innerText = "尚未登入";
+        document.getElementById('phoneList').innerHTML = "";
+      }
+    });
+  </script>
+</body>
+</html>
