@@ -4,10 +4,50 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>會員頁面</title>
+<style>
+  /* Modal 基本樣式 */
+  .modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    left: 0; top: 0; 
+    width: 100%; height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.5);
+  }
+  .modal-content {
+    background-color: #fefefe;
+    margin: 10% auto; 
+    padding: 20px;
+    border: 1px solid #888;
+    width: 300px;
+    border-radius: 6px;
+    box-shadow: 0 0 10px #0003;
+    position: relative;
+  }
+  .close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    right: 10px;
+    top: 5px;
+  }
+  .close-btn:hover {
+    color: black;
+  }
+  label, input, button {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+</style>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-  import { getFirestore, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+  import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAq8_DC6kLl2bmqNKvv1q7ghZr0-7Ej4_k",
@@ -34,37 +74,56 @@
     }
   });
 
-  window.showAddPhoneDialog = () => {
-    const phone = prompt("請輸入電話號碼 (09xxxxxxxx):");
-    if (phone === null) return; // 使用者取消輸入
-
-    const phoneTrimmed = phone.trim();
-    const phoneRegex = /^09\d{8}$/;
-    if (!phoneRegex.test(phoneTrimmed)) {
-      alert("電話號碼格式錯誤，請輸入09開頭共10碼的號碼");
-      return;
-    }
-
-    savePhoneNumber(phoneTrimmed);
+  // 顯示彈窗
+  window.openSearchModal = () => {
+    document.getElementById("searchModal").style.display = "block";
+    document.getElementById("searchResult").textContent = "";
+    document.getElementById("searchInput").value = "";
   };
 
-  async function savePhoneNumber(phone) {
-    if (!currentUser) {
-      alert("使用者尚未登入！");
+  // 關閉彈窗
+  window.closeSearchModal = () => {
+    document.getElementById("searchModal").style.display = "none";
+  };
+
+  // 查詢電話號碼
+  window.searchPhone = async () => {
+    const phone = document.getElementById("searchInput").value.trim();
+    const phoneRegex = /^09\d{8}$/;
+    if (!phoneRegex.test(phone)) {
+      alert("請輸入正確的電話號碼格式 09xxxxxxxx");
       return;
     }
 
+    const resultDiv = document.getElementById("searchResult");
+    resultDiv.textContent = "查詢中...";
+
     try {
-      const userDocRef = doc(db, "users", currentUser.uid);
-
-      // 將電話號碼加入陣列 phones (新增不覆蓋)
-      await updateDoc(userDocRef, {
-        phones: arrayUnion({ number: phone, addedAt: new Date().toISOString() })
-      });
-
-      alert("電話號碼已加入！");
+      // 假設電話號碼都存在 users 集合各 uid 文件的 phones 陣列裡
+      // 只能逐筆搜尋全部用戶比較複雜，這裡示範簡易查詢，假設有建立額外的 phoneNumbers 集合方便查詢
+      // 如果沒有，你需要先設計結構，這裡用 phoneNumbers 集合，文件 id = 電話號碼
+      const docRef = await getDocs(query(collection(db, "phoneNumbers"), where("number", "==", phone)));
+      if (docRef.empty) {
+        resultDiv.textContent = "查無此電話號碼資料。";
+      } else {
+        // 顯示結果
+        let output = "";
+        docRef.forEach(doc => {
+          const data = doc.data();
+          output += `電話號碼：${data.number}\n加入日期：${data.addedAt}\n加入帳號：${data.uid}\n\n`;
+        });
+        resultDiv.textContent = output;
+      }
     } catch (error) {
-      alert("儲存電話號碼時發生錯誤：" + error.message);
+      resultDiv.textContent = "查詢錯誤：" + error.message;
+    }
+  };
+
+  // 點擊 modal 外關閉
+  window.onclick = function(event) {
+    const modal = document.getElementById("searchModal");
+    if (event.target === modal) {
+      modal.style.display = "none";
     }
   }
 </script>
@@ -72,9 +131,66 @@
 <body>
   <h1>會員頁面</h1>
   <button onclick="showAddPhoneDialog()">加入會員電話號碼</button>
-  <br /><br />
-  <button onclick="window.location.href='search.html'">進入查詢電話號碼頁面</button>
+  <button onclick="openSearchModal()">查詢電話號碼</button>
   <br /><br />
   <button onclick="auth.signOut().then(() => window.location.href='login.html')">登出</button>
+
+  <!-- 新增電話號碼彈窗保持原有功能 -->
+  <script>
+    function showAddPhoneDialog() {
+      const phone = prompt("請輸入電話號碼 (09xxxxxxxx):");
+      if (phone === null) return;
+
+      const phoneTrimmed = phone.trim();
+      const phoneRegex = /^09\d{8}$/;
+      if (!phoneRegex.test(phoneTrimmed)) {
+        alert("電話號碼格式錯誤，請輸入09開頭共10碼的號碼");
+        return;
+      }
+
+      savePhoneNumber(phoneTrimmed);
+    }
+
+    async function savePhoneNumber(phone) {
+      if (!currentUser) {
+        alert("使用者尚未登入！");
+        return;
+      }
+
+      try {
+        const { doc, updateDoc, arrayUnion, getFirestore } = await import("https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js");
+        const db = getFirestore();
+
+        const userDocRef = doc(db, "users", currentUser.uid);
+        await updateDoc(userDocRef, {
+          phones: arrayUnion({ number: phone, addedAt: new Date().toISOString(), uid: currentUser.uid })
+        });
+
+        // 同時在 phoneNumbers 集合新增方便查詢
+        const phoneDocRef = doc(db, "phoneNumbers", phone);
+        await updateDoc(phoneDocRef, {
+          number: phone,
+          addedAt: new Date().toISOString(),
+          uid: currentUser.uid
+        }, { merge: true });
+
+        alert("電話號碼已加入！");
+      } catch (error) {
+        alert("儲存電話號碼時發生錯誤：" + error.message);
+      }
+    }
+  </script>
+
+  <!-- 查詢電話號碼彈窗 -->
+  <div id="searchModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeSearchModal()">&times;</span>
+      <h2>查詢電話號碼</h2>
+      <label for="searchInput">電話號碼 (09xxxxxxxx):</label>
+      <input type="text" id="searchInput" maxlength="10" placeholder="請輸入電話號碼" />
+      <button onclick="searchPhone()">查詢</button>
+      <pre id="searchResult" style="white-space: pre-wrap; margin-top: 10px;"></pre>
+    </div>
+  </div>
 </body>
 </html>
