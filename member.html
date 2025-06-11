@@ -23,6 +23,7 @@
     const db = getFirestore(app);
 
     let currentUser = null;
+    let phoneExists = false;
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -35,9 +36,15 @@
 
         if (docSnap.exists()) {
           const data = docSnap.data();
-          document.getElementById("phoneNumber").innerText = data.phone || "未填寫";
+          if (data.phone) {
+            phoneExists = true;
+            document.getElementById("phoneNumber").innerText = data.phone;
+            document.getElementById("addPhoneBtn").disabled = true; // 若已有電話則禁用按鈕
+          } else {
+            document.getElementById("phoneNumber").innerText = "未填寫";
+          }
         } else {
-          console.log("無此用戶紀錄");
+          document.getElementById("phoneNumber").innerText = "未填寫";
         }
       } else {
         alert("尚未登入，請返回登入頁面");
@@ -45,19 +52,26 @@
       }
     });
 
-    // 彈出輸入電話號碼的對話框
+    // 新增電話（只能填一次）
     window.addPhoneNumber = async function() {
+      if (phoneExists) {
+        alert("您已填寫電話號碼，無法再新增！");
+        return;
+      }
+
       const phone = prompt("請輸入電話號碼：");
 
       if (phone) {
         try {
           const userDoc = doc(db, "users", currentUser.uid);
           await setDoc(userDoc, { phone: phone }, { merge: true });
-          alert("電話號碼已更新！");
+          alert("電話號碼已新增！");
           document.getElementById("phoneNumber").innerText = phone;
+          document.getElementById("addPhoneBtn").disabled = true; // 禁用按鈕
+          phoneExists = true;
         } catch (error) {
-          console.error("更新電話失敗：", error);
-          alert("更新失敗：" + error.message);
+          console.error("新增電話失敗：", error);
+          alert("新增失敗：" + error.message);
         }
       } else {
         alert("未輸入電話號碼！");
@@ -69,6 +83,6 @@
   <h2>會員資料</h2>
   <p>登入帳號：<span id="userEmail"></span></p>
   <p>已儲存電話號碼：<span id="phoneNumber"></span></p>
-  <button onclick="addPhoneNumber()">加入/更新會員電話</button>
+  <button id="addPhoneBtn" onclick="addPhoneNumber()">加入會員電話（僅限一次）</button>
 </body>
 </html>
