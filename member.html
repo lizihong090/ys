@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>會員專區 - 添加電話號碼</title>
+  <script type="module">
+    // Firebase SDK 引入
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // Firebase 配置
+    const firebaseConfig = {
+      apiKey: "AIzaSyAq8_DC6kLl2bmqNKvv1q7ghZr0-7Ej4_k",
+      authDomain: "yesh-87d8e.firebaseapp.com",
+      projectId: "yesh-87d8e",
+      storageBucket: "yesh-87d8e.firebasestorage.app",
+      messagingSenderId: "969667016769",
+      appId: "1:969667016769:web:6715fb42ed5daaa5b66ec0",
+      measurementId: "G-ETRBPCH2XN"
+    };
+
+    // 初始化 Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // 檢查登入狀態
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("userEmail").innerText = user.email;
+      } else {
+        // 未登入：導回登入頁
+        window.location.href = "login.html";
+      }
+    });
+
+    // 儲存電話號碼到 Firestore
+    window.savePhoneNumber = async function() {
+      const phone = document.getElementById("phone").value;
+      const user = auth.currentUser;
+      const resultDiv = document.getElementById("result");
+
+      if (user) {
+        try {
+          await setDoc(doc(db, "users", user.uid), {
+            email: user.email,
+            phone: phone
+          });
+          resultDiv.innerHTML = `<span style="color:green;">電話號碼已儲存！</span>`;
+        } catch (error) {
+          console.error("儲存失敗", error);
+          resultDiv.innerHTML = `<span style="color:red;">儲存錯誤：${error.message}</span>`;
+        }
+      } else {
+        resultDiv.innerHTML = `<span style="color:red;">未登入！</span>`;
+      }
+    }
+
+    // 登出功能
+    window.logout = function() {
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      });
+    }
+  </script>
+</head>
+<body>
+  <h2>會員專區</h2>
+  <p>登入帳號：<span id="userEmail"></span></p>
+
+  <h3>添加電話號碼</h3>
+  <input type="text" id="phone" placeholder="輸入電話號碼" /><br><br>
+  <button onclick="savePhoneNumber()">儲存電話號碼</button>
+  <div id="result" style="margin-top:10px;"></div>
+
+  <br><br>
+  <button onclick="logout()">登出</button>
+</body>
+</html>
