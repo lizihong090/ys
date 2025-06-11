@@ -53,21 +53,32 @@
       }
     }
 
-    // 查詢電話號碼
+    // 查詢電話號碼 + 註冊日期
     window.queryPhoneNumber = async function() {
       const user = auth.currentUser;
       const queryDiv = document.getElementById("queryResult");
 
       if (user) {
         try {
+          // 1. Firestore 電話號碼
           const docRef = doc(db, "users", user.uid);
           const docSnap = await getDoc(docRef);
+          let phoneText = "未填寫";
           if (docSnap.exists()) {
             const data = docSnap.data();
-            queryDiv.innerHTML = `<span style="color:blue;">已儲存電話：${data.phone || '未填寫'}</span>`;
-          } else {
-            queryDiv.innerHTML = `<span style="color:red;">查無資料！</span>`;
+            phoneText = data.phone || "未填寫";
           }
+
+          // 2. Firebase Auth 註冊時間
+          const creationTime = user.metadata.creationTime;
+
+          // 顯示結果
+          queryDiv.innerHTML = `
+            <span style="color:blue;">
+              已儲存電話：${phoneText}<br>
+              註冊日期：${creationTime}
+            </span>
+          `;
         } catch (error) {
           console.error("查詢失敗", error);
           queryDiv.innerHTML = `<span style="color:red;">查詢錯誤：${error.message}</span>`;
@@ -94,8 +105,8 @@
   <button onclick="savePhoneNumber()">儲存電話號碼</button>
   <div id="result" style="margin-top:10px;"></div>
 
-  <h3>查詢電話號碼</h3>
-  <button onclick="queryPhoneNumber()">查詢已儲存電話號碼</button>
+  <h3>查詢電話號碼與註冊日期</h3>
+  <button onclick="queryPhoneNumber()">查詢電話與註冊日期</button>
   <div id="queryResult" style="margin-top:10px;"></div>
 
   <br><br>
