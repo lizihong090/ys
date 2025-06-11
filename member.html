@@ -48,18 +48,16 @@
       }
     });
 
-    // 只加新電話，不覆蓋原 phones 陣列
     window.addPhoneNumber = async function() {
       const phone = prompt("請輸入新電話號碼：");
       if (phone) {
         try {
           const userDoc = doc(db, "users", currentUser.uid);
           await updateDoc(userDoc, {
-            phones: arrayUnion(phone) // 只加入，不覆蓋
+            phones: arrayUnion(phone)
           });
           alert("電話號碼已加入！");
           
-          // 重新顯示更新
           const docSnap = await getDoc(userDoc);
           const data = docSnap.data();
           document.getElementById("phoneList").innerText = data.phones.join(", ");
@@ -76,7 +74,8 @@
 <body>
   <h2>會員資料</h2>
   <p>登入帳號：<span id="userEmail"></span></p>
-  <p>已儲存電話號碼：<span id="phoneList"></span></p>
+  <span id="phoneList"></span> <!-- 移除「已儲存電話號碼：」這段文字 -->
+  <br><br>
   <button onclick="addPhoneNumber()">加入電話（不覆蓋原有）</button>
 </body>
 </html>
