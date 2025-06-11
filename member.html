@@ -2,10 +2,10 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>會員專區 - 電話號碼管理</title>
+  <title>會員頁面</title>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -22,94 +22,53 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // 登入檢查
-    onAuthStateChanged(auth, (user) => {
+    let currentUser = null;
+
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
+        currentUser = user;
         document.getElementById("userEmail").innerText = user.email;
+
+        // 讀取 Firestore 中的電話號碼
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          document.getElementById("phoneNumber").innerText = data.phone || "未填寫";
+        } else {
+          console.log("無此用戶紀錄");
+        }
       } else {
+        alert("尚未登入，請返回登入頁面");
         window.location.href = "login.html";
       }
     });
 
-    // 儲存電話號碼
-    window.savePhoneNumber = async function() {
-      const phone = document.getElementById("phone").value;
-      const user = auth.currentUser;
-      const resultDiv = document.getElementById("result");
+    // 彈出輸入電話號碼的對話框
+    window.addPhoneNumber = async function() {
+      const phone = prompt("請輸入電話號碼：");
 
-      if (user) {
+      if (phone) {
         try {
-          await setDoc(doc(db, "users", user.uid), {
-            email: user.email,
-            phone: phone
-          });
-          resultDiv.innerHTML = `<span style="color:green;">電話號碼已儲存！</span>`;
+          const userDoc = doc(db, "users", currentUser.uid);
+          await setDoc(userDoc, { phone: phone }, { merge: true });
+          alert("電話號碼已更新！");
+          document.getElementById("phoneNumber").innerText = phone;
         } catch (error) {
-          console.error("儲存失敗", error);
-          resultDiv.innerHTML = `<span style="color:red;">儲存錯誤：${error.message}</span>`;
+          console.error("更新電話失敗：", error);
+          alert("更新失敗：" + error.message);
         }
       } else {
-        resultDiv.innerHTML = `<span style="color:red;">未登入！</span>`;
+        alert("未輸入電話號碼！");
       }
-    }
-
-    // 查詢電話號碼 + 註冊日期
-    window.queryPhoneNumber = async function() {
-      const user = auth.currentUser;
-      const queryDiv = document.getElementById("queryResult");
-
-      if (user) {
-        try {
-          // 1. Firestore 電話號碼
-          const docRef = doc(db, "users", user.uid);
-          const docSnap = await getDoc(docRef);
-          let phoneText = "未填寫";
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            phoneText = data.phone || "未填寫";
-          }
-
-          // 2. Firebase Auth 註冊時間
-          const creationTime = user.metadata.creationTime;
-
-          // 顯示結果
-          queryDiv.innerHTML = `
-            <span style="color:blue;">
-              已儲存電話：${phoneText}<br>
-              註冊日期：${creationTime}
-            </span>
-          `;
-        } catch (error) {
-          console.error("查詢失敗", error);
-          queryDiv.innerHTML = `<span style="color:red;">查詢錯誤：${error.message}</span>`;
-        }
-      } else {
-        queryDiv.innerHTML = `<span style="color:red;">未登入！</span>`;
-      }
-    }
-
-    // 登出
-    window.logout = function() {
-      signOut(auth).then(() => {
-        window.location.href = "login.html";
-      });
-    }
+    };
   </script>
 </head>
 <body>
-  <h2>會員專區</h2>
+  <h2>會員資料</h2>
   <p>登入帳號：<span id="userEmail"></span></p>
-
-  <h3>添加電話號碼</h3>
-  <input type="text" id="phone" placeholder="輸入電話號碼" /><br><br>
-  <button onclick="savePhoneNumber()">儲存電話號碼</button>
-  <div id="result" style="margin-top:10px;"></div>
-
-  <h3>查詢電話號碼與註冊日期</h3>
-  <button onclick="queryPhoneNumber()">查詢電話與註冊日期</button>
-  <div id="queryResult" style="margin-top:10px;"></div>
-
-  <br><br>
-  <button onclick="logout()">登出</button>
+  <p>已儲存電話號碼：<span id="phoneNumber"></span></p>
+  <button onclick="addPhoneNumber()">加入/更新會員電話</button>
 </body>
 </html>
