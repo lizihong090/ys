@@ -23,7 +23,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // 登入事件
+    // 登入功能
     window.login = async function() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -32,11 +32,14 @@
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        resultDiv.innerHTML = `<span style="color:green;">登入成功：${user.email}</span>`;
+        resultDiv.innerHTML = `<span style="color:green;">登入成功，正在跳轉...</span>`;
         console.log("登入成功", user);
+        setTimeout(() => {
+          window.location.href = "member.html";
+        }, 1000);
       } catch (error) {
         console.error("登入失敗", error);
-        resultDiv.innerHTML = `<span style="color:red;">錯誤：${error.message}</span>`;
+        resultDiv.innerHTML = `<span style="color:red;">登入錯誤：${error.message}</span>`;
       }
     }
   </script>
