@@ -2,11 +2,11 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>Firebase 登入介面</title>
+  <title>Firebase 登入 / 註冊介面</title>
   <script type="module">
     // Firebase SDK 引入
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     // Firebase 配置
     const firebaseConfig = {
@@ -23,7 +23,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // 登入事件
+    // 登入功能
     window.login = async function() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -36,16 +36,34 @@
         console.log("登入成功", user);
       } catch (error) {
         console.error("登入失敗", error);
-        resultDiv.innerHTML = `<span style="color:red;">錯誤：${error.message}</span>`;
+        resultDiv.innerHTML = `<span style="color:red;">登入錯誤：${error.message}</span>`;
+      }
+    }
+
+    // 註冊功能
+    window.register = async function() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const resultDiv = document.getElementById("result");
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        resultDiv.innerHTML = `<span style="color:green;">註冊成功：${user.email}</span>`;
+        console.log("註冊成功", user);
+      } catch (error) {
+        console.error("註冊失敗", error);
+        resultDiv.innerHTML = `<span style="color:red;">註冊錯誤：${error.message}</span>`;
       }
     }
   </script>
 </head>
 <body>
-  <h2>Firebase 登入頁面</h2>
+  <h2>Firebase 登入 / 註冊 頁面</h2>
   <input type="email" id="email" placeholder="輸入 Email" /><br><br>
   <input type="password" id="password" placeholder="輸入密碼" /><br><br>
   <button onclick="login()">登入</button>
+  <button onclick="register()">註冊</button>
   <div id="result" style="margin-top:10px;"></div>
 </body>
 </html>
