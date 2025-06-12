@@ -2,10 +2,10 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>登入與註冊</title>
+  <title>登入</title>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAq8_DC6kLl2bmqNKvv1q7ghZr0-7Ej4_k",
@@ -32,17 +32,6 @@
       }
     };
 
-    window.register = async () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        alert("註冊成功，請登入");
-      } catch (error) {
-        alert("註冊失敗：" + error.message);
-      }
-    };
-
     // 已登入者直接導向 member.html
     onAuthStateChanged(auth, user => {
       if(user){
@@ -52,10 +41,9 @@
   </script>
 </head>
 <body>
-  <h2>登入 / 註冊</h2>
+  <h2>登入</h2>
   <input id="email" type="email" placeholder="Email" /><br/>
   <input id="password" type="password" placeholder="密碼" /><br/>
   <button onclick="login()">登入</button>
-  <button onclick="register()">註冊</button>
 </body>
 </html>
