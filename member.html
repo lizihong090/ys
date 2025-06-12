@@ -602,7 +602,7 @@
       
       <div class="form-group">
         <label for="rechargeAmount">儲值金額</label>
-        <input type="number" id="rechargeAmount" placeholder="請輸入儲值金額" min="1" />
+        <input type="number" id="rechargeAmount" placeholder="請輸入儲值金額" min="1" step="1" />
       </div>
       
       <button class="secondary" onclick="rechargeMember()">
@@ -610,7 +610,7 @@
       </button>
       
       <div class="search-result" id="rechargeResult">
-        請輸入電話號碼和儲值金額
+        請輸入儲值金額
       </div>
     </div>
   </div>
@@ -638,10 +638,6 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-
-  // 導出必要的變數到全域作用域
-  window.auth = auth;
-  window.signOut = signOut;
 
   let currentUser = null;
   let currentMemberData = null;
@@ -708,9 +704,9 @@
 
     const modal = document.getElementById("rechargeModal");
     modal.style.display = "block";
-    document.getElementById("rechargeResult").textContent = "請輸入儲值金額";
     document.getElementById("rechargePhone").value = currentSearchedPhone;
     document.getElementById("rechargeAmount").value = "";
+    document.getElementById("rechargeResult").textContent = "請輸入儲值金額";
     document.getElementById("rechargeAmount").focus();
   };
 
@@ -769,11 +765,13 @@
 
   // 會員儲值功能
   window.rechargeMember = async () => {
-    const amount = parseFloat(document.getElementById("rechargeAmount").value);
+    const amountInput = document.getElementById("rechargeAmount");
+    const amount = parseFloat(amountInput.value);
     const resultDiv = document.getElementById("rechargeResult");
     
     if (isNaN(amount) || amount <= 0) {
       resultDiv.innerHTML = '<span style="color: var(--danger-color)">請輸入有效的儲值金額</span>';
+      amountInput.focus();
       return;
     }
 
@@ -800,31 +798,31 @@
         
         const userDocRef = doc(db, "users", currentUser.uid);
         transaction.update(userDocRef, {
-          phones: arrayUnion({
-            number: phone,
-            rechargeAmount: amount,
-            rechargedAt: new Date().toISOString(),
-            operator: currentUser.uid
+          rechargeHistory: arrayUnion({
+            phone: phone,
+            amount: amount,
+            timestamp: new Date().toISOString(),
+            operator: currentUser.email
           })
         });
       });
       
-      resultDiv.innerHTML = `<span style="color: var(--secondary-color)"><i class="fas fa-check-circle"></i> 儲值成功！金額已更新</span>`;
-      showToast("儲值成功！", "success");
+      resultDiv.innerHTML = `<span style="color: var(--secondary-color)"><i class="fas fa-check-circle"></i> 成功儲值 $${amount.toLocaleString()} 元</span>`;
+      showToast(`成功儲值 $${amount.toLocaleString()} 元`, "success");
       
       if (currentMemberData && currentMemberData.number === phone) {
         currentMemberData.balance += amount;
         updateInfoGrid(currentMemberData);
       }
       
-      document.getElementById("rechargeAmount").value = "";
+      amountInput.value = "";
       
       setTimeout(() => {
         closeRechargeModal();
-      }, 1000);
+      }, 1500);
     } catch (error) {
       console.error("儲值錯誤:", error);
-      resultDiv.innerHTML = `<span style="color: var(--danger-color)">儲值失敗: ${error.message}</span>`;
+      resultDiv.innerHTML = `<span style="color: var(--danger-color)"><i class="fas fa-exclamation-circle"></i> 儲值失敗: ${error.message}</span>`;
       showToast(`儲值失敗: ${error.message}`, "error");
     }
   };
