@@ -372,6 +372,8 @@
     padding: 5px;
     border: 1px solid var(--border-color);
     border-radius: 4px;
+    font-size: 1.1em;
+    inputmode: numeric;
   }
   
   .order-summary {
@@ -427,6 +429,46 @@
     margin-top: 20px;
   }
   
+  /* 數字小鍵盤樣式 */
+  .numeric-keyboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .numeric-key {
+    background-color: var(--light-gray);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  
+  .numeric-key:hover {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .numeric-key:active {
+    transform: scale(0.95);
+  }
+  
+  .numeric-key.clear {
+    grid-column: span 2;
+    background-color: var(--danger-color);
+    color: white;
+  }
+  
+  .numeric-key.confirm {
+    background-color: var(--secondary-color);
+    color: white;
+  }
+  
   /* Responsive adjustments */
   @media (max-width: 768px) {
     .info-grid {
@@ -444,6 +486,10 @@
     .menu-grid {
       grid-template-columns: 1fr 1fr;
     }
+    
+    .numeric-key {
+      padding: 15px;
+    }
   }
   
   @media (max-width: 480px) {
@@ -458,6 +504,11 @@
     
     .menu-grid {
       grid-template-columns: 1fr;
+    }
+    
+    .numeric-key {
+      padding: 12px;
+      font-size: 1.1em;
     }
   }
 </style>
@@ -599,7 +650,7 @@
       
       <div class="form-group">
         <label for="rechargeAmount">儲值金額</label>
-        <input type="number" id="rechargeAmount" placeholder="請輸入儲值金額" min="1" step="1" />
+        <input type="number" id="rechargeAmount" placeholder="請輸入儲值金額" min="1" step="1" inputmode="numeric" />
       </div>
       
       <button class="secondary" onclick="rechargeMember()">
@@ -620,17 +671,24 @@
       
       <div class="quantity-control">
         <button class="quantity-btn" onclick="changeQuantity(-1)">-</button>
-        <input type="number" id="quantityInput" class="quantity-input" value="1" min="1">
+        <input type="number" id="quantityInput" class="quantity-input" value="1" min="1" inputmode="numeric">
         <button class="quantity-btn" onclick="changeQuantity(1)">+</button>
       </div>
       
-      <div class="quantity-modal-actions">
-        <button class="danger" onclick="closeQuantityModal()">
-          <i class="fas fa-times"></i> 取消
-        </button>
-        <button class="secondary" onclick="confirmQuantity()">
-          <i class="fas fa-check"></i> 確認
-        </button>
+      <!-- 數字小鍵盤 -->
+      <div class="numeric-keyboard">
+        <div class="numeric-key" onclick="appendNumber(1)">1</div>
+        <div class="numeric-key" onclick="appendNumber(2)">2</div>
+        <div class="numeric-key" onclick="appendNumber(3)">3</div>
+        <div class="numeric-key" onclick="appendNumber(4)">4</div>
+        <div class="numeric-key" onclick="appendNumber(5)">5</div>
+        <div class="numeric-key" onclick="appendNumber(6)">6</div>
+        <div class="numeric-key" onclick="appendNumber(7)">7</div>
+        <div class="numeric-key" onclick="appendNumber(8)">8</div>
+        <div class="numeric-key" onclick="appendNumber(9)">9</div>
+        <div class="numeric-key" onclick="appendNumber(0)">0</div>
+        <div class="numeric-key clear" onclick="clearQuantity()">清除</div>
+        <div class="numeric-key confirm" onclick="confirmQuantity()">確認</div>
       </div>
     </div>
   </div>
@@ -760,6 +818,18 @@
     let newValue = parseInt(input.value) + change;
     newValue = Math.max(1, newValue);
     input.value = newValue;
+  };
+
+  // 數字鍵盤功能
+  window.appendNumber = function(number) {
+    const input = document.getElementById("quantityInput");
+    const currentValue = input.value === "" ? "0" : input.value;
+    const newValue = parseInt(currentValue + number.toString());
+    input.value = Math.max(1, newValue);
+  };
+
+  window.clearQuantity = function() {
+    document.getElementById("quantityInput").value = "1";
   };
 
   // 確認數量
