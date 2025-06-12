@@ -21,14 +21,18 @@
     const auth = getAuth(app);
 
     window.login = async () => {
+      const statusElement = document.getElementById("status");
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
+
+      statusElement.textContent = "登入中...";
+
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        alert("登入成功");
+        statusElement.textContent = "登入成功，正在跳轉...";
         window.location.href = "member.html";
       } catch (error) {
-        alert("登入失敗：" + error.message);
+        statusElement.textContent = "登入失敗：" + error.message;
       }
     };
 
@@ -45,5 +49,6 @@
   <input id="email" type="email" placeholder="Email" /><br/>
   <input id="password" type="password" placeholder="密碼" /><br/>
   <button onclick="login()">登入</button>
+  <p id="status" style="color: blue; margin-top: 10px;"></p>
 </body>
 </html>
