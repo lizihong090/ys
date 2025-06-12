@@ -11,19 +11,112 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      text-decoration: none;
       font-size: 16px;
     }
     .login-button:hover {
       background-color: #45a049;
     }
+
+    /* 彈窗樣式 */
+    .modal {
+      display: none; 
+      position: fixed; 
+      z-index: 1; 
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.5); 
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto; 
+      padding: 20px;
+      border: 1px solid #888;
+      width: 300px;
+      border-radius: 8px;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+    }
   </style>
 </head>
 <body>
   <h1>歡迎來到首頁</h1>
-  
-  <!-- 登入按鈕 -->
-  <a href="login.html" class="login-button">登入</a>
 
+  <!-- 登入按鈕 -->
+  <button class="login-button" id="openModal">登入</button>
+
+  <!-- 登入彈窗 -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeModal">&times;</span>
+      <h2>登入</h2>
+      <input id="email" type="email" placeholder="Email"><br><br>
+      <input id="password" type="password" placeholder="密碼"><br><br>
+      <button onclick="login()">登入</button>
+      <p id="status" style="color: blue; margin-top: 10px;"></p>
+    </div>
+  </div>
+
+  <!-- Firebase JS -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAq8_DC6kLl2bmqNKvv1q7ghZr0-7Ej4_k",
+      authDomain: "yesh-87d8e.firebaseapp.com",
+      projectId: "yesh-87d8e",
+      storageBucket: "yesh-87d8e.firebasestorage.app",
+      messagingSenderId: "969667016769",
+      appId: "1:969667016769:web:6715fb42ed5daaa5b66ec0",
+      measurementId: "G-ETRBPCH2XN"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.login = async () => {
+      const statusElement = document.getElementById("status");
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      statusElement.textContent = "登入中...";
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        statusElement.textContent = "登入成功，正在跳轉...";
+        window.location.href = "member.html";
+      } catch (error) {
+        statusElement.textContent = "登入失敗：" + error.message;
+      }
+    };
+
+    // 已登入自動導向
+    onAuthStateChanged(auth, user => {
+      if(user){
+        window.location.href = "member.html";
+      }
+    });
+
+    // 彈窗控制
+    const modal = document.getElementById("loginModal");
+    const openBtn = document.getElementById("openModal");
+    const closeBtn = document.getElementById("closeModal");
+
+    openBtn.onclick = () => modal.style.display = "block";
+    closeBtn.onclick = () => modal.style.display = "none";
+    window.onclick = (event) => { if (event.target === modal) modal.style.display = "none"; }
+  </script>
 </body>
 </html>
