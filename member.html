@@ -439,7 +439,7 @@
 <body>
   <div class="header">
     <h1>會員管理系統</h1>
-    <button class="danger" onclick="auth.signOut().then(() => window.location.href='login.html')">
+    <button class="danger" id="logoutBtn">
       <i class="fas fa-sign-out-alt"></i> 登出
     </button>
   </div>
@@ -610,7 +610,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
   // Firebase 配置
@@ -629,6 +629,10 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  // 導出必要的變數到全域作用域
+  window.auth = auth;
+  window.signOut = signOut;
+
   let currentUser = null;
   let currentMemberData = null;
 
@@ -642,6 +646,20 @@
       setTimeout(() => {
         window.location.href = "login.html";
       }, 1500);
+    }
+  });
+
+  // 登出功能
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    try {
+      await signOut(auth);
+      showToast("登出成功", "success");
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 1000);
+    } catch (error) {
+      console.error("登出失敗:", error);
+      showToast(`登出失敗: ${error.message}`, "error");
     }
   });
 
