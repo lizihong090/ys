@@ -139,7 +139,7 @@
   .modal {
     display: none; 
     position: fixed; 
-    z-index: 1000; 
+    z-login: 1000; 
     left: 0; 
     top: 0; 
     width: 100%; 
@@ -261,7 +261,7 @@
     padding: 12px 24px;
     border-radius: 4px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    z-index: 1001;
+    z-login: 1001;
     opacity: 0;
     transition: opacity 0.3s;
   }
@@ -644,7 +644,7 @@
     } else {
       showToast("請先登入系統！", "error");
       setTimeout(() => {
-        window.location.href = "index.html";
+        window.location.href = "login.html";
       }, 1500);
     }
   });
@@ -655,7 +655,7 @@
       await signOut(auth);
       showToast("登出成功", "success");
       setTimeout(() => {
-        window.location.href = "index.html";
+        window.location.href = "login.html";
       }, 1000);
     } catch (error) {
       console.error("登出失敗:", error);
