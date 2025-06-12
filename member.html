@@ -318,6 +318,7 @@
     text-align: center;
     transition: all 0.3s ease;
     background-color: var(--light-gray);
+    cursor: pointer;
   }
   
   .menu-item:hover {
@@ -348,6 +349,7 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
+    margin-top: 15px;
   }
   
   .quantity-btn {
@@ -405,6 +407,21 @@
   }
   
   .order-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  /* 數量選擇彈窗 */
+  .quantity-modal {
+    text-align: center;
+  }
+  
+  .quantity-modal h3 {
+    margin-bottom: 15px;
+  }
+  
+  .quantity-modal-actions {
     display: flex;
     gap: 10px;
     margin-top: 20px;
@@ -497,51 +514,31 @@
     
     <div class="menu-grid">
       <!-- 薯條 -->
-      <div class="menu-item">
+      <div class="menu-item" data-item="fries">
         <img src="https://via.placeholder.com/100?text=薯條" alt="薯條">
         <h3>薯條</h3>
         <p>$50</p>
-        <div class="quantity-control">
-          <button class="quantity-btn" onclick="updateQuantity('fries', -1)">-</button>
-          <input type="number" id="fries-qty" class="quantity-input" value="0" min="0">
-          <button class="quantity-btn" onclick="updateQuantity('fries', 1)">+</button>
-        </div>
       </div>
       
       <!-- 米血 -->
-      <div class="menu-item">
+      <div class="menu-item" data-item="riceBlood">
         <img src="https://via.placeholder.com/100?text=米血" alt="米血">
         <h3>米血</h3>
         <p>$30</p>
-        <div class="quantity-control">
-          <button class="quantity-btn" onclick="updateQuantity('riceBlood', -1)">-</button>
-          <input type="number" id="riceBlood-qty" class="quantity-input" value="0" min="0">
-          <button class="quantity-btn" onclick="updateQuantity('riceBlood', 1)">+</button>
-        </div>
       </div>
       
       <!-- 雞塊 -->
-      <div class="menu-item">
+      <div class="menu-item" data-item="chickenNuggets">
         <img src="https://via.placeholder.com/100?text=雞塊" alt="雞塊">
         <h3>雞塊</h3>
         <p>$60</p>
-        <div class="quantity-control">
-          <button class="quantity-btn" onclick="updateQuantity('chickenNuggets', -1)">-</button>
-          <input type="number" id="chickenNuggets-qty" class="quantity-input" value="0" min="0">
-          <button class="quantity-btn" onclick="updateQuantity('chickenNuggets', 1)">+</button>
-        </div>
       </div>
       
       <!-- 甜不辣 -->
-      <div class="menu-item">
+      <div class="menu-item" data-item="tempura">
         <img src="https://via.placeholder.com/100?text=甜不辣" alt="甜不辣">
         <h3>甜不辣</h3>
         <p>$40</p>
-        <div class="quantity-control">
-          <button class="quantity-btn" onclick="updateQuantity('tempura', -1)">-</button>
-          <input type="number" id="tempura-qty" class="quantity-input" value="0" min="0">
-          <button class="quantity-btn" onclick="updateQuantity('tempura', 1)">+</button>
-        </div>
       </div>
     </div>
     
@@ -615,6 +612,29 @@
     </div>
   </div>
 
+  <!-- 數量選擇彈窗 -->
+  <div id="quantityModal" class="modal">
+    <div class="modal-content quantity-modal">
+      <span class="close-btn" onclick="closeQuantityModal()">&times;</span>
+      <h2 class="modal-title" id="quantityModalTitle">選擇數量</h2>
+      
+      <div class="quantity-control">
+        <button class="quantity-btn" onclick="changeQuantity(-1)">-</button>
+        <input type="number" id="quantityInput" class="quantity-input" value="1" min="1">
+        <button class="quantity-btn" onclick="changeQuantity(1)">+</button>
+      </div>
+      
+      <div class="quantity-modal-actions">
+        <button class="danger" onclick="closeQuantityModal()">
+          <i class="fas fa-times"></i> 取消
+        </button>
+        <button class="secondary" onclick="confirmQuantity()">
+          <i class="fas fa-check"></i> 確認
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast 通知 -->
   <div id="toast" class="toast"></div>
 
@@ -642,6 +662,7 @@
   let currentUser = null;
   let currentMemberData = null;
   let currentSearchedPhone = null;
+  let currentSelectedItem = null;
 
   // 監聽認證狀態
   onAuthStateChanged(auth, user => {
@@ -713,6 +734,42 @@
   // 關閉儲值彈窗
   window.closeRechargeModal = () => {
     document.getElementById("rechargeModal").style.display = "none";
+  };
+
+  // 顯示數量選擇彈窗
+  window.showQuantityModal = (itemId) => {
+    currentSelectedItem = itemId;
+    const modal = document.getElementById("quantityModal");
+    const item = menuItems[itemId];
+    
+    document.getElementById("quantityModalTitle").textContent = `選擇 ${item.name} 數量`;
+    document.getElementById("quantityInput").value = 1;
+    
+    modal.style.display = "block";
+  };
+
+  // 關閉數量選擇彈窗
+  window.closeQuantityModal = () => {
+    document.getElementById("quantityModal").style.display = "none";
+    currentSelectedItem = null;
+  };
+
+  // 改變數量
+  window.changeQuantity = (change) => {
+    const input = document.getElementById("quantityInput");
+    let newValue = parseInt(input.value) + change;
+    newValue = Math.max(1, newValue);
+    input.value = newValue;
+  };
+
+  // 確認數量
+  window.confirmQuantity = () => {
+    if (!currentSelectedItem) return;
+    
+    const quantity = parseInt(document.getElementById("quantityInput").value);
+    document.getElementById(`${currentSelectedItem}-qty`).value = quantity;
+    updateOrderSummary();
+    closeQuantityModal();
   };
 
   // 查詢電話號碼
@@ -938,14 +995,15 @@
     tempura: { name: "甜不辣", price: 40 }
   };
 
-  // 更新數量
-  window.updateQuantity = function(item, change) {
-    const input = document.getElementById(`${item}-qty`);
-    let newValue = parseInt(input.value) + change;
-    newValue = Math.max(0, newValue);
-    input.value = newValue;
-    updateOrderSummary();
-  };
+  // 初始化菜單項目點擊事件
+  function initMenuItems() {
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.addEventListener('click', function() {
+        const itemId = this.getAttribute('data-item');
+        showQuantityModal(itemId);
+      });
+    });
+  }
 
   // 更新訂單摘要
   function updateOrderSummary() {
@@ -954,7 +1012,7 @@
     orderList.innerHTML = '';
 
     for (const [key, item] of Object.entries(menuItems)) {
-      const quantity = parseInt(document.getElementById(`${key}-qty`).value);
+      const quantity = parseInt(document.getElementById(`${key}-qty`).value) || 0;
       if (quantity > 0) {
         const itemTotal = quantity * item.price;
         total += itemTotal;
@@ -986,7 +1044,7 @@
     let total = 0;
 
     for (const [key, item] of Object.entries(menuItems)) {
-      const quantity = parseInt(document.getElementById(`${key}-qty`).value);
+      const quantity = parseInt(document.getElementById(`${key}-qty`).value) || 0;
       if (quantity > 0) {
         const itemTotal = quantity * item.price;
         total += itemTotal;
@@ -1059,6 +1117,7 @@
   window.onclick = function(event) {
     const searchModal = document.getElementById("searchModal");
     const rechargeModal = document.getElementById("rechargeModal");
+    const quantityModal = document.getElementById("quantityModal");
     
     if (event.target === searchModal) {
       closeSearchModal();
@@ -1067,6 +1126,10 @@
     if (event.target === rechargeModal) {
       closeRechargeModal();
     }
+    
+    if (event.target === quantityModal) {
+      closeQuantityModal();
+    }
   };
 
   // 按ESC鍵關閉彈窗
@@ -1074,7 +1137,23 @@
     if (event.key === 'Escape') {
       closeSearchModal();
       closeRechargeModal();
+      closeQuantityModal();
     }
+  });
+
+  // 初始化
+  document.addEventListener('DOMContentLoaded', () => {
+    // 為每個菜單項目添加隱藏的數量輸入框
+    for (const key of Object.keys(menuItems)) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.id = `${key}-qty`;
+      input.value = '0';
+      document.body.appendChild(input);
+    }
+    
+    // 初始化菜單點擊事件
+    initMenuItems();
   });
 </script>
 </body>
