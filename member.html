@@ -704,7 +704,7 @@
   };
 
   // 查詢電話號碼
-  window.searchPhone = async () => {
+   window.searchPhone = async () => {
     const phone = document.getElementById("searchInput").value.trim();
     const resultDiv = document.getElementById("searchResult");
     const phoneRegex = /^09\d{8}$/;
@@ -713,29 +713,30 @@
       resultDiv.innerHTML = '<span style="color: var(--danger-color)">請輸入正確的電話號碼格式 (09xxxxxxxx)</span>';
       return;
     }
-
-    // 顯示載入狀態
+  
     resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div>查詢中...</div>';
     
     try {
-      // 查詢 phoneNumbers 集合
       const phoneDocRef = doc(db, "phoneNumbers", phone);
       const phoneDocSnap = await getDoc(phoneDocRef);
-
+  
       if (!phoneDocSnap.exists()) {
         resultDiv.innerHTML = '<span style="color: var(--danger-color)">查無此電話號碼的會員資料</span>';
         clearInfoGrid();
         currentMemberData = null;
         return;
       }
-
+  
       const data = phoneDocSnap.data();
       currentMemberData = data;
       
-      // 更新資訊卡片
       updateInfoGrid(data);
       
-      // 顯示成功訊息
+      // 查詢成功後關閉彈窗
+      setTimeout(() => {
+        closeSearchModal();
+      }, 1000); // 1秒後關閉
+      
       resultDiv.innerHTML = '<span style="color: var(--secondary-color)"><i class="fas fa-check-circle"></i> 查詢完成</span>';
     } catch (error) {
       console.error("查詢錯誤:", error);
@@ -747,75 +748,72 @@
 
   // 會員儲值功能
   window.rechargeMember = async () => {
-    const phone = document.getElementById("rechargePhone").value.trim();
-    const amount = parseFloat(document.getElementById("rechargeAmount").value);
-    const resultDiv = document.getElementById("rechargeResult");
-    const phoneRegex = /^09\d{8}$/;
-    
-    if (!phoneRegex.test(phone)) {
-      resultDiv.innerHTML = '<span style="color: var(--danger-color)">請輸入正確的電話號碼格式 (09xxxxxxxx)</span>';
-      return;
-    }
-    
-    if (isNaN(amount) || amount <= 0) {
-      resultDiv.innerHTML = '<span style="color: var(--danger-color)">請輸入有效的儲值金額</span>';
-      return;
-    }
+  const phone = document.getElementById("rechargePhone").value.trim();
+  const amount = parseFloat(document.getElementById("rechargeAmount").value);
+  const resultDiv = document.getElementById("rechargeResult");
+  const phoneRegex = /^09\d{8}$/;
+  
+  if (!phoneRegex.test(phone)) {
+    resultDiv.innerHTML = '<span style="color: var(--danger-color)">請輸入正確的電話號碼格式 (09xxxxxxxx)</span>';
+    return;
+  }
+  
+  if (isNaN(amount) || amount <= 0) {
+    resultDiv.innerHTML = '<span style="color: var(--danger-color)">請輸入有效的儲值金額</span>';
+    return;
+  }
 
-    // 顯示載入狀態
-    resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div>處理中...</div>';
-    
-    try {
-      // 使用事務處理確保數據一致性
-      await runTransaction(db, async (transaction) => {
-        const phoneDocRef = doc(db, "phoneNumbers", phone);
-        const phoneDoc = await transaction.get(phoneDocRef);
-        
-        if (!phoneDoc.exists()) {
-          throw new Error("會員不存在");
-        }
-        
-        const currentBalance = phoneDoc.data().balance || 0;
-        const newBalance = currentBalance + amount;
-        
-        // 更新電話號碼文件
-        transaction.update(phoneDocRef, {
-          balance: newBalance,
-          lastUpdated: new Date().toISOString()
-        });
-        
-        // 更新使用者文件中的記錄
-        const userDocRef = doc(db, "users", currentUser.uid);
-        transaction.update(userDocRef, {
-          phones: arrayUnion({
-            number: phone,
-            rechargeAmount: amount,
-            rechargedAt: new Date().toISOString(),
-            operator: currentUser.uid
-          })
-        });
-        
-        return newBalance;
-      });
+  resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div>處理中...</div>';
+  
+  try {
+    await runTransaction(db, async (transaction) => {
+      const phoneDocRef = doc(db, "phoneNumbers", phone);
+      const phoneDoc = await transaction.get(phoneDocRef);
       
-      // 顯示成功訊息
-      resultDiv.innerHTML = `<span style="color: var(--secondary-color)"><i class="fas fa-check-circle"></i> 儲值成功！金額已更新</span>`;
-      showToast("儲值成功！", "success");
-      
-      // 如果當前查詢的是同一個會員，則更新顯示
-      if (currentMemberData && currentMemberData.number === phone) {
-        currentMemberData.balance += amount;
-        updateInfoGrid(currentMemberData);
+      if (!phoneDoc.exists()) {
+        throw new Error("會員不存在");
       }
       
-      // 清空輸入框
-      document.getElementById("rechargeAmount").value = "";
-    } catch (error) {
-      console.error("儲值錯誤:", error);
-      resultDiv.innerHTML = `<span style="color: var(--danger-color)">儲值失敗: ${error.message}</span>`;
-      showToast(`儲值失敗: ${error.message}`, "error");
+      const currentBalance = phoneDoc.data().balance || 0;
+      const newBalance = currentBalance + amount;
+      
+      transaction.update(phoneDocRef, {
+        balance: newBalance,
+        lastUpdated: new Date().toISOString()
+      });
+      
+      const userDocRef = doc(db, "users", currentUser.uid);
+      transaction.update(userDocRef, {
+        phones: arrayUnion({
+          number: phone,
+          rechargeAmount: amount,
+          rechargedAt: new Date().toISOString(),
+          operator: currentUser.uid
+        })
+      });
+    });
+    
+    resultDiv.innerHTML = `<span style="color: var(--secondary-color)"><i class="fas fa-check-circle"></i> 儲值成功！金額已更新</span>`;
+    showToast("儲值成功！", "success");
+    
+    if (currentMemberData && currentMemberData.number === phone) {
+      currentMemberData.balance += amount;
+      updateInfoGrid(currentMemberData);
     }
-  };
+    
+    document.getElementById("rechargeAmount").value = "";
+    
+    // 儲值成功後關閉彈窗
+    setTimeout(() => {
+      closeRechargeModal();
+    }, 1000); // 1秒後關閉
+    
+  } catch (error) {
+    console.error("儲值錯誤:", error);
+    resultDiv.innerHTML = `<span style="color: var(--danger-color)">儲值失敗: ${error.message}</span>`;
+    showToast(`儲值失敗: ${error.message}`, "error");
+  }
+};
 
   // 更新資訊卡片
   function updateInfoGrid(data) {
